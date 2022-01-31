@@ -13,7 +13,7 @@ NOTE: Auto-detection for non-login urls, and indicated via 'link_type' (direct/l
 
 # ===================================================================
 
-def gen_data_string(data, boundary=f'{"-"*6}_'):
+def gen_payload(data, boundary=f'{"-"*6}_'):
     data_string = ''
     for item in data:
         data_string += f'{boundary}\r\n'
@@ -63,11 +63,10 @@ def appdrive_dl(url):
         
     while data['type'] <= 3:
         try:
-            response = client.post(url, data=gen_data_string(data), headers=headers).json()
+            response = client.post(url, data=gen_payload(data), headers=headers).json()
             break
         except:
             data['type'] += 1
-            print(data['type'])
 
     if 'url' in response:
         info_parsed['gdrive_link'] = response['url']
