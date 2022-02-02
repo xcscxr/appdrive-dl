@@ -5,7 +5,6 @@ from lxml import etree
 url = "" # appdrive url
 
 MD = "" # md cookie
-PHPSESSID = "" # phpsessid cookie
 
 '''
 NOTE: Auto-detection for non-login urls, and indicated via 'link_type' (direct/login) in output.
@@ -32,10 +31,7 @@ def parse_info(data):
 def appdrive_dl(url):
     client = requests.Session()
     
-    client.cookies.update({
-        'MD': MD,
-        'PHPSESSID': PHPSESSID
-    })
+    client.cookies.update({'MD': MD})
 
     res = client.get(url)
     key = re.findall('"key",\s+"(.*?)"', res.text)[0]
@@ -52,10 +48,9 @@ def appdrive_dl(url):
     
     data = {
         'type': 1,
-        'key': key
+        'key': key,
+        'action': 'original'
     }
-    
-    data['action'] = 'original'
     
     if len(ddl_btn):
         info_parsed['link_type'] = 'direct'
@@ -65,8 +60,7 @@ def appdrive_dl(url):
         try:
             response = client.post(url, data=gen_payload(data), headers=headers).json()
             break
-        except:
-            data['type'] += 1
+        except: data['type'] += 1
 
     if 'url' in response:
         info_parsed['gdrive_link'] = response['url']
