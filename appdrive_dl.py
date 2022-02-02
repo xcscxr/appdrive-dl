@@ -63,12 +63,17 @@ def appdrive_dl(url):
         info_parsed['link_type'] = 'direct'
         data['action'] = 'direct'
         
-    while data['type'] <= 3:
+    while data['type'] < 4:
         try:
             response = client.post(url, data=gen_payload(data), headers=headers).json()
             break
         except: data['type'] += 1
-
+            
+    if data['type'] > 3:
+        info_parsed['error'] = True
+        info_parsed['error_message'] = 'Something went wrong :('
+        return info_parsed
+    
     if 'url' in response:
         info_parsed['gdrive_link'] = response['url']
         
