@@ -8,6 +8,10 @@ MD = "" # md cookie
 
 '''
 NOTE: Auto-detection for non-login urls, and indicated via 'link_type' (direct/login) in output.
+
+SUPPORTED DOMAINS:
+appdrive.in
+driveapp.in
 '''
 
 # ===================================================================
@@ -69,6 +73,11 @@ def appdrive_dl(url):
     elif 'error' in response and response['error']:
         info_parsed['error'] = True
         info_parsed['error_message'] = response['message']
+    
+    if 'driveapp.in' in url and not info_parsed['error']:
+        res = client.get(info_parsed['gdrive_link'])
+        drive_link = etree.HTML(res.content).xpath("//a[contains(@class,'btn')]/@href")[0]
+        info_parsed['gdrive_link'] = drive_link
         
     info_parsed['src_url'] = url
     
