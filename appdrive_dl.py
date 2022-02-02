@@ -12,6 +12,8 @@ NOTE: Auto-detection for non-login urls, and indicated via 'link_type' (direct/l
 SUPPORTED DOMAINS:
 appdrive.in
 driveapp.in
+
+(Same MD cookie won't work with different domains)
 '''
 
 # ===================================================================
