@@ -28,9 +28,9 @@ SUPPORTED DOMAINS:
 
 # ===================================================================
 
-def account_login(client, url, username, password):
+def account_login(client, url, email, password):
     data = {
-        'email': username,
+        'email': email,
         'password': password
     }
     client.post(f'https://{urlparse(url).netloc}/login', data=data)
