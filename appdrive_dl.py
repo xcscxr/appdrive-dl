@@ -1,22 +1,46 @@
 import re
 import requests
 from lxml import etree
+from urllib.parse import urlparse
 
-url = "" # appdrive url
+url = "" # file url
 
-MD = "" # md cookie
+# Website User Account (NOT GOOGLE ACCOUNT) ----
+account = {
+    'email': '', 
+    'passwd': ''
+}
+
+# Destination config ----
+SHARED_DRIVE_ID = '' # team drive ID (optional) (for MyDrive, keep this field empty)
+FOLDER_ID = '' # drive folder ID (optional)
 
 '''
-NOTE: Auto-detection for non-login urls, and indicated via 'link_type' (direct/login) in output.
+
+NOTE: 
+ - Auto-detection for non-login urls, and indicated via 'link_type' (direct/login) in output.
 
 SUPPORTED DOMAINS:
-appdrive.in
-driveapp.in
-
-(Same MD cookie won't work with different domains)
+ - appdrive.in
+ - driveapp.in
+ 
 '''
 
 # ===================================================================
+
+def account_login(client, url, username, password):
+    data = {
+        'email': username,
+        'password': password
+    }
+    client.post(f'https://{urlparse(url).netloc}/login', data=data)
+
+def update_account(client, url, shared_drive_id, folder_id):
+    data = {
+        'root_drive': shared_drive_id,
+        'folder': folder_id
+    }
+    client.post(f'https://{urlparse(url).netloc}/account', data=data)
 
 def gen_payload(data, boundary=f'{"-"*6}_'):
     data_string = ''
@@ -34,10 +58,16 @@ def parse_info(data):
         info_parsed[kv[0].lower()] = kv[1]
     return info_parsed
 
+# ===================================================================
+
 def appdrive_dl(url):
     client = requests.Session()
-    
-    client.cookies.update({'MD': MD})
+    client.headers.update({
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
+    })
+
+    account_login(client, url, account['email'], account['passwd'])
+    update_account(client, url, SHARED_DRIVE_ID, FOLDER_ID)
 
     res = client.get(url)
     key = re.findall('"key",\s+"(.*?)"', res.text)[0]
@@ -50,7 +80,6 @@ def appdrive_dl(url):
     
     headers = {
         "Content-Type": f"multipart/form-data; boundary={'-'*4}_",
-        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
     }
     
     data = {
@@ -80,8 +109,7 @@ def appdrive_dl(url):
     
     if info_parsed['error']: return info_parsed
     
-    # driveapp
-    if 'driveapp.in' in url and not info_parsed['error']:
+    if urlparse(url).netloc == 'driveapp.in' and not info_parsed['error']:
         res = client.get(info_parsed['gdrive_link'])
         drive_link = etree.HTML(res.content).xpath("//a[contains(@class,'btn')]/@href")[0]
         info_parsed['gdrive_link'] = drive_link
@@ -93,3 +121,5 @@ def appdrive_dl(url):
 # ===================================================================
 
 print(appdrive_dl(url))
+
+# ===================================================================
